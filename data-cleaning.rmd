@@ -1,0 +1,33 @@
+---
+title: "Data Cleaning"
+author: "Anselmi Jokinen"
+date: "11/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+```{r}
+for (file in list.files(path='data/raw/')) {
+  data <- read.csv(file=paste0('data/raw/', file))
+  data <- na.omit(data)
+  groups <- data %>% group_by(station, year, month)
+  summary <- groups %>% summarise(
+    PM2.5 = mean(PM2.5),
+    PM10 = mean(PM10),
+    SO2 = mean(SO2),
+    NO2 = mean(NO2),
+    CO = mean(CO),
+    O3 = mean(O3),
+    TEMP = mean(TEMP),
+    PRES = mean(PRES),
+    DEWP = mean(DEWP),
+    WSPM = mean(WSPM)
+  )
+  df <- as.data.frame(summary)
+  write.csv(x=df, file=paste0('data/clean/', file))
+}
+```
