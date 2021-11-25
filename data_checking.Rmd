@@ -1,0 +1,56 @@
+---
+title: "BDA project sanity check"
+author: "Markus Henttonen"
+output:
+  pdf_document: 
+    toc: yes
+    toc_depth: 1
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+```{r}
+test_arr <- read.csv(file=paste0('data\\clean\\', 'PRSA_Data_Aotizhongxin_20130301-20170228.csv'))
+
+```
+
+
+
+```{r}
+head(test_arr)
+```
+
+```{r}
+t_series <- ts(test_arr$PM2.5)
+```
+
+```{r}
+acf(t_series, lag.max=14)
+```
+
+
+
+
+```{r}
+acf(t_series, lag.max=14, type = "partial")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
