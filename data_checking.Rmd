@@ -25,31 +25,49 @@ head(test_arr)
 ```
 
 ```{r}
-t_series <- ts(test_arr$PM2.5)
+t_series <- ts(test_arr$TEMP, frequency = 12)
 ```
-
-```{r}
-acf(t_series, lag.max=14)
-```
-
-
 
 
 ```{r}
-acf(t_series, lag.max=14, type = "partial")
+ts.plot(t_series)
+```
+
+
+
+```{r}
+acf(t_series, lag.max=25)
+acf(t_series, lag.max=25, type = "partial")
 ```
 
 
 
 
+```{r}
+diffs <- diff(t_series, lag = 12, differences = 1)
+ts.plot(diffs)
+acf(diffs, lag.max=14)
+acf(diffs, lag.max=14, type = "partial")
+```
+
+
+```{r}
+diffn <- diff(t_series, lag = 1, differences = 1)
+ts.plot(diffn)
+acf(diffn, lag.max=14)
+acf(diffn, lag.max=14, type = "partial")
+```
 
 
 
 
-
-
-
-
+```{r}
+diffn <- diff(t_series, lag = 1, differences = 1)
+diffsn <- diff(t_series, lag = 12, differences = 1)
+ts.plot(diffsn)
+acf(diffsn, lag.max=14)
+acf(diffsn, lag.max=14, type = "partial")
+```
 
 
 
