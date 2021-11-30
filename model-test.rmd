@@ -1,0 +1,43 @@
+---
+title: "Model Test"
+author: "Anselmi Jokinen"
+date: "30/11/2021"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(rstan)
+```
+
+```{r}
+data <- read.csv('data/clean/monthly/PRSA_Data_Aotizhongxin_20130301-20170228.csv')
+series <- ts(data$SO2)
+plot(series)
+acf(series)
+acf(series, type='partial')
+```
+
+```{r}
+log_series <- log(series)
+plot(log_series)
+acf(log_series)
+acf(log_series, type='partial')
+```
+
+```{r}
+diff_series <- diff(log_series, lag=12, differences=1)
+plot(diff_series)
+acf(diff_series)
+acf(diff_series, type='partial')
+```
+
+```{r, results='hide', warning=FALSE}
+data <-list(
+  y = diff_series,
+  N = length(diff_series),
+  K = 1
+)
+model <- stan(file='ar.stan', data=data, iter=6000)
+df <- as.data.frame(model)
+plot(df$alpha, df$'beta[1]', xlab='alpha', ylab='beta', main='Posterior distribution')
+```
