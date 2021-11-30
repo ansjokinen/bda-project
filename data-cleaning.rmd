@@ -10,10 +10,22 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 ```
 
+Plot some original data
+
 ```{r}
+data <- read.csv('data/raw/PRSA_Data_Wanshouxigong_20130301-20170228.csv')
+plot.ts(data$SO2, ylab='SO2', main='Measurements')
+```
+
+Calculate monthly averages
+
+```{r, message=FALSE}
 for (file in list.files(path='data/raw/')) {
+  
   data <- read.csv(file=paste0('data/raw/', file))
   data <- na.omit(data)
+  
+  # Group by and summarize
   groups <- data %>% group_by(station, year, month)
   summary <- groups %>% summarise(
     PM2.5 = mean(PM2.5),
@@ -27,7 +39,66 @@ for (file in list.files(path='data/raw/')) {
     DEWP = mean(DEWP),
     WSPM = mean(WSPM)
   )
+  # Use summary as new df
   df <- as.data.frame(summary)
-  write.csv(x=df, file=paste0('data/clean/', file))
+  
+  write.csv(x=df, file=paste0('data/clean/monthly/', file))
 }
+```
+
+Plot monthly data
+
+```{r}
+plot.ts(df$SO2, ylab='SO2', main='Monthly average')
+```
+
+Also calculate weekly averages
+
+```{r, message=FALSE}
+for (file in list.files(path='data/raw/')) {
+  
+  data <- read.csv(file=paste0('data/raw/', file))
+  data <- na.omit(data)
+  
+  # Create week column
+  for (i in 1:nrow(data)) {
+    day <- data$day[i]
+    month <- data$month[i]
+    year <- data$year[i]
+    datestr <- paste0(year, '-', month, '-', day)
+    week <- strftime(datestr, format='%V')
+    data[i,'week'] <- week
+  }
+  
+  # Group by and summarize
+  groups <- data %>% group_by(station, year, week)
+  summary <- groups %>% summarise(
+    PM2.5 = mean(PM2.5),
+    PM10 = mean(PM10),
+    SO2 = mean(SO2),
+    NO2 = mean(NO2),
+    CO = mean(CO),
+    O3 = mean(O3),
+    TEMP = mean(TEMP),
+    PRES = mean(PRES),
+    DEWP = mean(DEWP),
+    WSPM = mean(WSPM)
+  )
+  
+  # Use summary as new df
+  df <- as.data.frame(summary)
+  
+  # Janky fix for weird week numbers for last and first rows
+  up <- nrow(df) - 1
+  df <- df[2:up,]
+  row.names(df) <- NULL
+  
+  write.csv(x=df, file=paste0('data/clean/weekly/', file))
+}
+```
+
+Plot some weekly data
+
+```{r}
+plot.ts(df$SO2, ylab='SO2', main='Weekly average')
 ```
