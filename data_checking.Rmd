@@ -25,7 +25,7 @@ head(test_arr)
 ```
 
 ```{r}
-t_series <- ts(test_arr$TEMP, frequency = 12)
+t_series <- log(ts(test_arr$PM2.5, frequency = 12))
 ```
 
 
