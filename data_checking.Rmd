@@ -14,7 +14,7 @@ library(dplyr)
 ```
 
 ```{r}
-test_arr <- read.csv(file=paste0('data\\clean\\', 'PRSA_Data_Aotizhongxin_20130301-20170228.csv'))
+test_arr <- read.csv(file=paste0('data\\clean\\weekly\\', 'PRSA_Data_Aotizhongxin_20130301-20170228.csv'))
 
 ```
 
@@ -25,7 +25,7 @@ head(test_arr)
 ```
 
 ```{r}
-t_series <- log(ts(test_arr$PM2.5, frequency = 12))
+t_series <- log(ts(test_arr$PM2.5, frequency = 52))
 ```
 
 
@@ -36,26 +36,26 @@ ts.plot(t_series)
 
 
 ```{r}
-acf(t_series, lag.max=25)
-acf(t_series, lag.max=25, type = "partial")
+acf(t_series, lag.max=105)
+acf(t_series, lag.max=105, type = "partial")
 ```
 
 
 
 
 ```{r}
-diffs <- diff(t_series, lag = 12, differences = 1)
+diffs <- diff(t_series, lag = 52, differences = 1)
 ts.plot(diffs)
-acf(diffs, lag.max=14)
-acf(diffs, lag.max=14, type = "partial")
+acf(diffs, lag.max=105)
+acf(diffs, lag.max=105, type = "partial")
 ```
 
 
 ```{r}
 diffn <- diff(t_series, lag = 1, differences = 1)
 ts.plot(diffn)
-acf(diffn, lag.max=14)
-acf(diffn, lag.max=14, type = "partial")
+acf(diffn, lag.max=105)
+acf(diffn, lag.max=105, type = "partial")
 ```
 
 
@@ -63,10 +63,10 @@ acf(diffn, lag.max=14, type = "partial")
 
 ```{r}
 diffn <- diff(t_series, lag = 1, differences = 1)
-diffsn <- diff(t_series, lag = 12, differences = 1)
+diffsn <- diff(t_series, lag = 52, differences = 1)
 ts.plot(diffsn)
-acf(diffsn, lag.max=14)
-acf(diffsn, lag.max=14, type = "partial")
+acf(diffsn, lag.max=105)
+acf(diffsn, lag.max=105, type = "partial")
 ```
 
 

@@ -11,33 +11,83 @@ library(rstan)
 
 ```{r}
 data <- read.csv('data/clean/weekly/PRSA_Data_Aotizhongxin_20130301-20170228.csv')
-series <- ts(data$SO2)
+series <- ts(data$SO2, frequency = 52)
 plot(series)
-acf(series)
-acf(series, type='partial')
+acf(series, lag.max = 105)
+acf(series, type='partial', lag.max = 105)
 ```
 
 ```{r}
 log_series <- log(series)
 plot(log_series)
-acf(log_series)
-acf(log_series, type='partial')
+acf(log_series, lag.max = 105)
+acf(log_series, type='partial', lag.max = 105)
 ```
 
 ```{r}
-diff_series <- diff(log_series, lag=12, differences=1)
+diff_series <- diff(log_series, lag=52, differences=1)
 plot(diff_series)
-acf(diff_series)
-acf(diff_series, type='partial')
+acf(diff_series, lag.max = 105)
+acf(diff_series, type='partial', lag.max = 105)
 ```
 
 ```{r, results='hide', warning=FALSE}
 data <-list(
-  y = diff_series,
-  T = length(diff_series),
+  y = log_series,
+  T = length(log_series),
   N = 1
 )
 model <- stan(file='test_model_MH.stan', data=data, iter=6000)
 df <- as.data.frame(model)
-plot(df$alpha, df$'beta[1]', xlab='alpha', ylab='beta', main='Posterior distribution')
+plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
 ```
+
+
+
+
+
+```{r}
+plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
