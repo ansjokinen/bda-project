@@ -7,6 +7,7 @@ output: pdf_document
 
 ```{r, include=FALSE}
 library(rstan)
+library(bayesforecast)
 ```
 
 ```{r}
@@ -26,6 +27,7 @@ acf(log_series, type='partial', lag.max = 105)
 
 ```{r}
 diff_series <- diff(log_series, lag=52, differences=1)
+diff_series <- diff(log_series, lag=1, differences=1)
 plot(diff_series)
 acf(diff_series, lag.max = 105)
 acf(diff_series, type='partial', lag.max = 105)
@@ -33,13 +35,13 @@ acf(diff_series, type='partial', lag.max = 105)
 
 ```{r, results='hide', warning=FALSE}
 data <-list(
-  y = log_series,
-  T = length(log_series),
+  y = diff_series,
+  Tm = length(diff_series),
   N = 1
 )
 model <- stan(file='test_model_MH.stan', data=data, iter=6000)
 df <- as.data.frame(model)
-plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
+plot(df$phi, df$theta, xlab='phi', ylab='theta', main='Posterior distribution')
 ```
 
 
@@ -47,7 +49,20 @@ plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
 
 
 ```{r}
-plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
+plot(df$phi, df$stheta, xlab='sphi', ylab='theta', main='Posterior distribution')
+hist(df$phi)
+hist(df$theta)
+hist(df$stheta)
+```
+
+
+
+
+
+
+```{r}
+automod <- stan_sarima(ts = diff_series, order = c(1, 0, 1), seasonal = c(0, 0, 0), period = 52)
+
 
 ```
 
@@ -57,27 +72,57 @@ plot(df$phi, df$theta, xlab='alpha', ylab='beta', main='Posterior distribution')
 
 
 
+```{r}
+adf <- as.data.frame(automod$stanfit)
+plot(adf$`ar0[1]`, adf$`ma0[1]`, xlab='phi', ylab='theta', main='Posterior distribution')
+
+```
 
 
 
 
 
+```{r}
+hist(adf$`ar0[1]`)
+hist(adf$`ma0[1]`)
+hist(adf$`ar0[2]`)
+#hist(adf$`sar0[1]`)
+hist(adf$`sma0[1]`)
+hist(adf$`ar[1]`)
+hist(adf$`ma[1]`)
+#hist(adf$`sar[1]`)
+hist(adf$`sma[1]`)
+```
 
 
 
+```{r}
+log_series[200]
+mean(adf$`residuals[200]`)
+```
+
+
+```{r}
+automod2 <- auto.sarima(series)
+```
+
+```{r}
+testdf <- as.data.frame(automod2$stanfit)
+```
 
 
 
+```{r}
+hist(testdf$`ar0[1]`)
+hist(testdf$`ar0[2]`)
+hist(testdf$`ar0[3]`)
+hist(testdf$`sar0[1]`)
+hist(testdf$`sma0[1]`)
+```
 
-
-
-
-
-
-
-
-
-
+```{r}
+testdf$`ar[1]`
+```
 
 
 
