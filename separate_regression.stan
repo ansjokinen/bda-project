@@ -1,29 +1,43 @@
-
-// The input data is a vector 'y' of length 'N'.
 data {
-  int<lower=0> N;
-  int<lower=0> M; //nimber of series
+  int<lower=0> N; // number of obervations per series
+  int<lower=0> M; // number of series
   matrix[N, M] x;
   matrix[N, M] y;
+  matrix[N, M] x_pred;
 }
 
-// The parameters accepted by the model. Our model
-// accepts two parameters 'mu' and 'sigma'.
 parameters {
+
+  // regression coefficients and noise variance
   vector[M] alpha;
   vector[M] beta;
   vector<lower=0>[M] sigma;
   
 }
 
-// The model to be estimated. We model the output
-// 'y' to be normally distributed with mean 'mu'
-// and standard deviation 'sigma'.
 model {
-  for (i in 1:M){
-    alpha[i] ~ normal(0, 1);
-    beta[i] ~ normal(0,1);
-    y[,i] ~ normal(alpha[i] + beta[i] * x[,i], sigma[i]);
+  for (j in 1:M){
+
+    // priors
+    alpha[j] ~ normal(0, 1);
+    beta[j] ~ normal(0, 1);
+    sigma[j] ~ inv_chi_square(1);
+
+    // likelihood
+    y[,j] ~ normal(alpha[j] + beta[j] * x[,j], sigma[j]);
   }
 }
 
+generated quantities {
+
+  matrix[N, M] log_lik; // log-likelihood matrix
+  matrix[N, M] y_pred; // posterior predictions
+
+  for (i in 1:N) {
+    for (j in 1:M) {
+      log_lik[i,j] = normal_lpdf(y[i,j ] | alpha[j] + beta[j] * x[i,j], sigma[j]);
+      y_pred[i,j] = normal_rng(alpha[j] + beta[j] * x_pred[i,j], sigma[j]);
+    }
+  }
+
+}
