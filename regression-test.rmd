@@ -5,9 +5,15 @@ date: "12/5/2021"
 output: html_document
 ---
 
-```{r}
+```{r, warning=FALSE}
 library(rstan)
+library(loo)
+
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 ```
+
+# Load and format data
 
 ```{r}
 # Maximum number of allowed data points
@@ -17,10 +23,10 @@ max_data_points <- 1000
 x <- matrix(rep(0, max_data_points), ncol=1)
 y <- matrix(rep(0, max_data_points), ncol=1)
 
-for (file in list.files(path="data/clean/weekly/")) {
+for (file in list.files(path="data/clean/monthly/")) {
   
   # Read file
-  file_data <- read.csv(file=paste0("data/clean/weekly/", file))
+  file_data <- read.csv(file=paste0("data/clean/monthly/", file))
   
   # Select desired data from file
   file_x <- file_data$O3
@@ -46,13 +52,127 @@ x <- x[,2:ncols]
 y <- y[,2:ncols]
 ```
 
+# Plot data
+
 ```{r}
+for (i in 1:6) {
+  plot(x[,i], y[,i])
+}
+```
+
+# Fit models
+
+```{r, results='hide', include=FALSE}
 stan_data <- list(
-  x = x,
-  y = y,
+  x = x[,1:6],
+  y = y[,1:6],
   N = dim(x)[1],
-  M = dim(x)[2]
+  M = 6,
+  x_pred = x[,1:6]
 )
-model <- stan(file="separate_regression.stan", data=stan_data, iter=6000)
-df <- as.data.frame(model)
+
+model_sep <- stan(file="separate_regression.stan", data=stan_data, iter=6000)
+
+df_sep <- as.data.frame(model_sep)
+```
+
+```{r, results='hide', include=FALSE}
+stan_data <- list(
+  x = x[,1:6],
+  y = y[,1:6],
+  N = dim(x)[1],
+  M = 6,
+  x_pred = cbind(x[,1:6], runif(dim(x)[1], 0, 120))
+)
+
+model_hier <- stan(
+  file="hierarchial_regression.stan",
+  data=stan_data,
+  iter=6000,
+  control = list(adapt_delta=0.99) # default 0.8
+)
+
+df_hier <- as.data.frame(model_hier)
+```
+
+# Trace plots
+
+```{r}
+pars1 = c()
+for (i in 1:6) {
+  pars1 = c(pars1, paste0("alpha[", i, "]"))
+}
+traceplot(model_hier, inc_warmup=FALSE, pars=pars1)
+```
+
+```{r}
+pars2 = c()
+for (i in 1:6) {
+  pars2 = c(pars2, paste0("beta[", i, "]"))
+}
+traceplot(model_hier, inc_warmup=FALSE, pars=pars2)
+```
+
+# Convergence diagnostics
+
+```{r, include=FALSE}
+monitor_sep <- monitor(model_sep)
+monitor_hier <- monitor(model_hier)
+```
+
+```{r}
+monitor_sep[1:18, c("Rhat", "n_eff")]
+monitor_hier[1:18, c("Rhat", "n_eff")]
+```
+
+# Loo
+
+```{r}
+loo_sep <- loo(model_sep, pars="log_lik")
+loo_hier <- loo(model_hier, pars="log_lik")
+loo_sep$estimates
+plot(loo_sep)
+loo_hier$estimates
+plot(loo_hier)
+```
+
+# Posterior predictive check
+
+```{r}
+y_pred <- y
+for (i in 1:dim(y)[1]) {
+  for (j in 1:6) {
+    choices <- df_sep[paste0("y_pred[", i, ",", j, "]")]
+    k <- sample(1:12000, 1)
+    y_pred[i,j] <- choices[k,]
+  }
+}
+
+for (i in 1:6) {
+  plot(x[,i], y[,i])
+  points(x[,i], y_pred[,i], col="red")
+}
+```
+
+```{r}
+y_pred <- y
+for (i in 1:dim(y)[1]) {
+  for (j in 1:7) {
+    choices <- df_hier[paste0("y_pred[", i, ",", j, "]")]
+    k <- sample(1:12000, 1)
+    y_pred[i,j] <- choices[k,]
+  }
+}
+
+for (i in 1:6) {
+  plot(x[,i], y[,i])
+  points(x[,i], y_pred[,i], col="red")
+}
+
+plot(x[,7], y[,7])
+```
+
+# Prior sensitivty analysis
+
+```{r}
 ```
