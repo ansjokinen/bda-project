@@ -23,7 +23,7 @@ model {
   for (i in 1:M){
     alpha[i] ~ normal(0, 1);
     beta[i] ~ normal(0,1);
-    y[,i] ~ normal(alpha[i] + beta[i] * x[,i], sigma);
+    y[,i] ~ normal(alpha[i] + beta[i] * x[,i], sigma[i]);
   }
 }
 
