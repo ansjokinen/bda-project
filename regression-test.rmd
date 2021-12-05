@@ -1,0 +1,58 @@
+---
+title: "Regression Test"
+author: "Anselmi Jokinen"
+date: "12/5/2021"
+output: html_document
+---
+
+```{r}
+library(rstan)
+```
+
+```{r}
+# Maximum number of allowed data points
+max_data_points <- 1000
+
+# Initialize x and y
+x <- matrix(rep(0, max_data_points), ncol=1)
+y <- matrix(rep(0, max_data_points), ncol=1)
+
+for (file in list.files(path="data/clean/weekly/")) {
+  
+  # Read file
+  file_data <- read.csv(file=paste0("data/clean/weekly/", file))
+  
+  # Select desired data from file
+  file_x <- file_data$O3
+  file_y <- file_data$TEMP
+  
+  # Number of rows used is the min across all series
+  nrows <- min(dim(x)[1], dim(y)[1], length(file_x), length(file_y))
+  
+  # Drop extra rows
+  x <- x[1:nrows,]
+  y <- y[1:nrows,]
+  file_x <- file_x[1:nrows]
+  file_y <- file_y[1:nrows]
+  
+  # Add column from file to the data
+  x <- cbind(x, matrix(file_x, ncol=1))
+  y <- cbind(y, matrix(file_y, ncol=1))
+}
+
+# Drop the columns created for initialization
+ncols <- dim(x)[2]
+x <- x[,2:ncols]
+y <- y[,2:ncols]
+```
+
+```{r}
+stan_data <- list(
+  x = x,
+  y = y,
+  N = dim(x)[1],
+  M = dim(x)[2]
+)
+model <- stan(file="separate_regression.stan", data=stan_data, iter=6000)
+df <- as.data.frame(model)
+```
