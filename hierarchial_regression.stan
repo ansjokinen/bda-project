@@ -25,15 +25,17 @@ model {
   // hyperpriors
   mu_alpha ~ normal(0, 1);
   mu_beta ~ normal(0, 1);
-  sigma_alpha ~ inv_chi_square(1);
+  sigma_alpha ~ inv_chi_square(0.1);
   sigma_beta ~ inv_chi_square(1);
+
+  // prior
+  sigma ~ inv_chi_square(1);
   
   for (j in 1:M){
 
     // priors
     alpha[j] ~ normal(mu_alpha, sigma_alpha);
     beta[j] ~ normal(mu_beta, sigma_beta);
-    sigma ~ inv_chi_square(1);
 
     // likelihood
     y[,j] ~ normal(alpha[j] + beta[j] * x[,j], sigma);

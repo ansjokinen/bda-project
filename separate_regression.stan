@@ -19,7 +19,7 @@ model {
   for (j in 1:M){
 
     // priors
-    alpha[j] ~ normal(0, 1);
+    alpha[j] ~ normal(0, 10);
     beta[j] ~ normal(0, 1);
     sigma[j] ~ inv_chi_square(1);
 
